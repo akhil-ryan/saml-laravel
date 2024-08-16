@@ -37,5 +37,5 @@ return [
         'oktaSamlLogout' => '/okta/logout',
     ],
     'user_model' => \App\Models\User::class,
-    'home_url' => '/home',
+    'home_url' => '/',
 ];

@@ -16,6 +16,7 @@
     ],
     "require": {
         "onelogin/php-saml": "^4.1",
+        "litesaml/lightsaml": "^v4.2.0",
         "php": ">=7.0",
         "illuminate/support": ">=5.4"
     },
