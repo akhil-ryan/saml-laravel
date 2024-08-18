@@ -38,30 +38,24 @@ class OktaLaravelController extends Controller
             $last_name = $attributes['LastName'][0] ?? null;
 
             $nameId = $auth->getNameId();
-
             $sessionIndex = $auth->getSessionIndex();
             $nameIdFormat = $auth->getNameIdFormat();
-
-            $username = explode("@", $email)[0];
-
-            $id = "okta";
 
             $users = $this->userModel::where(['email' => $email])->first();
             if ($users) {
                 \Illuminate\Support\Facades\Auth::login($users);
-                $this->userModel::where(['id' => Auth::user()->id])->increment('loginCount');
-                $this->userModel::where('id', Auth::user()->id)->update(['provider_id' => $id, 'fname' => $first_name, 'lname' => $last_name]);
-                $info = "logged In";
+                $this->userModel::where('id', Auth::user()->id)->update(['fname' => $first_name, 'lname' => $last_name, 'email' => $email]);
             } else {
-                $user = $this->userModel::create([
-                    'username' => $username,
+                $this->userModel::create([
+                    'fname' => $first_name,
+                    'lname' => $last_name,
                     'email' => $email
                 ]);
                 $users = $this->userModel::where(['email' => $email])->first();
-                $this->userModel::where('email', $email)->update(['provider_id' => $id, 'fname' => $first_name, 'lname' => $last_name]);
                 Auth::login($users);
             }
-            return redirect()->route(config('saml.home_url'));
+            $info = "logged In";
+            return redirect()->to(config('saml.home_url'))->with('info', $info);
         } else {
             return redirect()->route('Logout')->with('error', 'SAML authentication failed');
         }
@@ -73,18 +67,19 @@ class OktaLaravelController extends Controller
         $auth->processResponse();
         if ($auth->isAuthenticated()) {
             $userAttributes = $auth->getAttributes();
-            return redirect()->intended(route('user.index'));
+            return redirect()->intended(route(config('saml.home_url')));
         } else {
-            abort(401, 'SAML authentication failed.');
+            return json_encode([
+                'status' => 'false',
+                'message' => 'SAML authentication failed.'
+            ], 401);
         }
     }
 
     public function oktaSamlMetadata(Request $request)
     {
         $settings = config('saml');
-
         $metadata = Metadata::builder($settings)->build();
-
         return response($metadata, 200, [
             'Content-Type' => 'text/xml',
         ]);
@@ -94,8 +89,63 @@ class OktaLaravelController extends Controller
     {
         $auth = new SAuth(config('saml'));
         $auth->logout();
-        \Illuminate\Support\Facades\Session::flush();
         Auth::logout();
+        \Illuminate\Support\Facades\Session::flush();
+        return redirect('/')->withSuccess('Logout Successful.');
+    }
+
+    public static function samlAuth()
+    {
+        $auth = new SAuth(config('saml'));
+        $auth->login();
+        return redirect()->to($auth->ssoUrl());
+    }
+
+    public static function samlLogin()
+    {
+        $auth = new SAuth(config('saml'));
+        $auth->processResponse();
+        if ($auth->isAuthenticated()) {
+            return json_encode([
+                'status' => 'true',
+                'data' => $auth->getAttributes(),
+                'message' => 'SAML authentication success.'
+            ], 200);
+        } else {
+            return json_encode([
+                'status' => 'false',
+                'message' => 'SAML authentication failed.'
+            ], 401);
+        }
+    }
+
+    public static function samlMetadata()
+    {
+        $settings = config('saml');
+        $metadata = Metadata::builder($settings)->build();
+        return response($metadata, 200, [
+            'Content-Type' => 'text/xml',
+        ]);
+    }
+
+    public static function samlAcs()
+    {
+        $auth = new SAuth(config('saml'));
+        $auth->processResponse();
+        if ($auth->isAuthenticated()) {
+            $userAttributes = $auth->getAttributes();
+            return redirect()->intended(route(config('saml.home_url')));
+        } else {
+            abort(401, 'SAML authentication failed.');
+        }
+    }
+
+    public static function samlLogout()
+    {
+        $auth = new SAuth(config('saml'));
+        $auth->logout();
+        Auth::logout();
+        \Illuminate\Support\Facades\Session::flush();
         return redirect('/')->withSuccess('Logout Successful.');
     }
 }

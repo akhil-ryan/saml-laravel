@@ -14,7 +14,7 @@ return [
             'url' => 'APP_LOGOUT_URL',
             'binding' => \OneLogin\Saml2\Constants::BINDING_HTTP_REDIRECT,
         ],
-        'NameIDFormat' => \OneLogin\Saml2\Constants::NAMEID_UNSPECIFIED,
+        'NameIDFormat' => \OneLogin\Saml2\Constants::NAMEID_UNSPECIFIED
     ],
     'idp' => [
         'entityId' => 'ENTITY_ID_URL',
@@ -26,7 +26,7 @@ return [
             'url' => 'SAML_LOGOUT_URL',
             'binding' => \OneLogin\Saml2\Constants::BINDING_HTTP_REDIRECT,
         ],
-        'x509cert' => 'SAML_CERT',
+        'x509cert' => 'SAML_CERT'
     ],
     'enable_route' => true,
     'routes' => [
@@ -34,8 +34,8 @@ return [
         'oktaSamlLogin' => '/okta/login/{token?}',
         'oktaSamlLoginResponse' => '/okta/login/{token}',
         'oktaSamlAcs' => '/okta/acs',
-        'oktaSamlLogout' => '/okta/logout',
+        'oktaSamlLogout' => '/okta/logout'
     ],
-    'user_model' => \App\Models\User::class,
-    'home_url' => '/',
+    'model' => \App\Models\User::class,
+    'home_url' => '/'
 ];
