@@ -107,13 +107,13 @@ class OktaLaravelController extends Controller
         $auth->processResponse();
         if ($auth->isAuthenticated()) {
             return json_encode([
-                'status' => 'true',
+                'status' => true,
                 'data' => $auth->getAttributes(),
                 'message' => 'SAML authentication success.'
             ], 200);
         } else {
             return json_encode([
-                'status' => 'false',
+                'status' => false,
                 'message' => 'SAML authentication failed.'
             ], 401);
         }
