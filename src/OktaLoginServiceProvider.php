@@ -29,8 +29,10 @@ class OktaLoginServiceProvider extends ServiceProvider
             $this->loadRoutesFrom(__DIR__ . '/Http/routes/web.php');
         }
 
-        $this->publishes([
-            __DIR__ . '/../config/saml.php' => config_path('saml.php'),
-        ], 'config');
+        if ($this->app->runningInConsole()) {
+            $this->publishes([
+                __DIR__ . '/../config/saml.php' => config_path('saml.php'),
+            ], 'config');
+        }
     }
 }

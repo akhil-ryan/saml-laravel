@@ -3,39 +3,40 @@
 return [
     'strict' => true,
     'debug' => true,
-    'baseurl' => 'APP_BASE_URL',
+    'baseurl' => env('APP_URL') . env('SAML_LOGIN_URL'),
     'sp' => [
-        'entityId' => 'ENTITY_ID',
+        'entityId' => env('SAML_SA_ENTITY'),
         'assertionConsumerService' => [
-            'url' => 'APP_CONSUME_URL',
+            'url' => env('APP_URL') . env('SAML_ACS_URL'),
             'binding' => \OneLogin\Saml2\Constants::BINDING_HTTP_POST,
         ],
         'singleLogoutService' => [
-            'url' => 'APP_LOGOUT_URL',
+            'url' => env('APP_URL') . env('SAML_LOGOUT_URL'),
             'binding' => \OneLogin\Saml2\Constants::BINDING_HTTP_REDIRECT,
         ],
         'NameIDFormat' => \OneLogin\Saml2\Constants::NAMEID_UNSPECIFIED
     ],
     'idp' => [
-        'entityId' => 'ENTITY_ID_URL',
+        'entityId' => env('SAML_ENTITY'),
         'singleSignOnService' => [
-            'url' => 'SAML_SSO_URL',
+            'url' => env('SAML_HOME_URL') . env('SAML_SSO'),
             'binding' => \OneLogin\Saml2\Constants::BINDING_HTTP_REDIRECT,
         ],
         'singleLogoutService' => [
-            'url' => 'SAML_LOGOUT_URL',
+            'url' => env('SAML_HOME_URL'),
             'binding' => \OneLogin\Saml2\Constants::BINDING_HTTP_REDIRECT,
         ],
-        'x509cert' => 'SAML_CERT'
+        'x509cert' => env('SAML_CERT'),
     ],
-    'enable_route' => true,
+    'enable_route' => env('SAML_ROUTE_ENABLE'),
     'routes' => [
-        'oktaSamlMetadata' => '/okta/metadata',
-        'oktaSamlLogin' => '/okta/login/{token?}',
-        'oktaSamlLoginResponse' => '/okta/login/{token}',
-        'oktaSamlAcs' => '/okta/acs',
-        'oktaSamlLogout' => '/okta/logout'
+        'oktaSamlMetadata' => '/metadata',
+        'oktaSamlLogin' => '/login/{token?}',
+        'oktaSamlLoginResponse' => '/login/{token}',
+        'oktaSamlAcs' => '/acs',
+        'oktaSamlLogout' => '/logout'
     ],
     'model' => \App\Models\User::class,
-    'home_url' => '/'
+    'home_url' => env('SAML_REDIRECT_URL'),
+    'schema' => json_decode(env('SAML_SCHEMA', '{}'), true)
 ];
