@@ -40,10 +40,21 @@ class OktaLaravelController extends Controller
             $sessionIndex = $auth->getSessionIndex();
             $nameIdFormat = $auth->getNameIdFormat();
 
+            $userDataJson = config('saml.schema');
+            $userData = json_decode($userDataJson, true);
+
+            $finalUserData = array_map(function ($value) use ($first_name, $last_name, $email) {
+                return str_replace(
+                    ['$first_name', '$last_name', '$email'],
+                    [$first_name, $last_name, $email],
+                    $value
+                );
+            }, $userData);
+
             if ($users = $this->userModel::where(['email' => $email])->first()) {
-                $this->userModel::where('id', Auth::user()->id)->update(config('saml.schema'));
+                $this->userModel::where('id', $users->id)->update($finalUserData);
             } else {
-                $users = $this->userModel::create(config('saml.schema'));
+                $users = $this->userModel::create($finalUserData);
             }
             Auth::login($users);
             return redirect()->to(config('saml.home_url'))->with('info', "Login Successful. Welcome " . $first_name . " " . $last_name);
