@@ -3,7 +3,6 @@
 namespace Oktalogin\SamlOktaLogin\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use OneLogin\Saml2\Auth as SAuth;
@@ -51,10 +50,11 @@ class OktaLaravelController extends Controller
                 );
             }, $userData);
 
-            if ($users = $this->userModel::where(['email' => $email])->first()) {
-                $this->userModel::where('id', $users->id)->update($finalUserData);
+            $instanceModel = new $this->userModel;
+            if ($users = $instanceModel::where('email', $email)->first()) {
+                $instanceModel::where('id', $users->id)->update($finalUserData);
             } else {
-                $users = $this->userModel::create($finalUserData);
+                $users = $instanceModel::create($finalUserData);
             }
             Auth::login($users);
             return redirect()->to(config('saml.home_url'))->with('info', "Login Successful. Welcome " . $first_name . " " . $last_name);
