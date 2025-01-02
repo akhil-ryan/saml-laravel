@@ -32,11 +32,13 @@ return [
     'routes' => [
         'oktaSamlMetadata' => '/metadata',
         'oktaSamlLogin' => '/login/{token?}',
-        'oktaSamlLoginResponse' => '/login/{token?}',
+        'oktaSamlLoginResponse' => '/login/{token}',
         'oktaSamlAcs' => '/acs',
         'oktaSamlLogout' => '/logout'
     ],
     'model' => \App\Models\User::class,
     'home_url' => env('SAML_REDIRECT_URL'),
+    'logout_url' => env('SAML_LOGOUT_URL'),
+    'middleware' => env('SAML_MIDDLEWARE'),
     'schema' => env('SAML_SCHEMA')
 ];

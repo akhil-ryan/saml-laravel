@@ -15,6 +15,7 @@ class OktaLaravelController extends Controller
     public function __construct()
     {
         $this->userModel = config('saml.model');
+        $this->middleware(config('saml.middleware'));
     }
 
     public function oktaSamlLogin(Request $request)
@@ -28,7 +29,6 @@ class OktaLaravelController extends Controller
     {
         $auth = new SAuth(config('saml'));
         $auth->processResponse();
-
         if ($auth->isAuthenticated()) {
             $attributes = $auth->getAttributes();
             $email = $attributes['Email'][0] ?? null;
@@ -57,9 +57,9 @@ class OktaLaravelController extends Controller
                 $users = $instanceModel::create($finalUserData);
             }
             Auth::login($users);
-            return redirect()->route(config('saml.home_url'))->with('info', "Login Successful. Welcome " . $first_name . " " . $last_name);
+            return redirect()->route('userDashboard')->with('info', "Login Successful. Welcome " . $first_name . " " . $last_name);
         } else {
-            return redirect()->route(config('saml.logout'))->with('error', 'SAML authentication failed');
+            return redirect()->route('saml.logout')->with('error', 'SAML authentication failed');
         }
     }
 
