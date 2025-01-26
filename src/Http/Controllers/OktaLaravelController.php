@@ -57,7 +57,7 @@ class OktaLaravelController extends Controller
                 $users = $instanceModel::create($finalUserData);
             }
             Auth::login($users);
-            return redirect()->route('userDashboard')->with('info', "Login Successful. Welcome " . $first_name . " " . $last_name);
+            return redirect()->route(config('saml.home_url'))->with('info', "Login Successful. Welcome " . $first_name . " " . $last_name);
         } else {
             return redirect()->route('saml.logout')->with('error', 'SAML authentication failed');
         }
