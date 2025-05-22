@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use OneLogin\Saml2\Auth as SAuth;
 use OneLogin\Saml2\Metadata;
+use Illuminate\Support\Facades\Session;
 
 class OktaLaravelController extends Controller
 {
@@ -59,7 +60,8 @@ class OktaLaravelController extends Controller
             Auth::login($users);
             return redirect()->route(config('saml.home_url'))->with('info', "Login Successful. Welcome " . $first_name . " " . $last_name);
         } else {
-            return redirect()->route('saml.logout')->with('error', 'SAML authentication failed');
+            self::flushSession();
+            return redirect()->route(config('saml.logout'))->with('error', 'SAML authentication failed');
         }
     }
 
@@ -71,6 +73,7 @@ class OktaLaravelController extends Controller
             $userAttributes = $auth->getAttributes();
             return redirect()->intended(route(config('saml.home_url')));
         } else {
+            self::flushSession();
             return redirect()->route('Logout')->with('error', 'SAML authentication failed');
         }
     }
@@ -88,8 +91,7 @@ class OktaLaravelController extends Controller
     {
         $auth = new SAuth(config('saml'));
         $auth->logout();
-        Auth::logout();
-        \Illuminate\Support\Facades\Session::flush();
+        self::flushSession();
         return redirect('/')->withSuccess('Logout Successful.');
     }
 
@@ -111,6 +113,7 @@ class OktaLaravelController extends Controller
                 'message' => 'SAML authentication success.'
             ], 200);
         } else {
+            self::flushSession();
             return json_encode([
                 'status' => false,
                 'message' => 'SAML authentication failed.'
@@ -135,6 +138,7 @@ class OktaLaravelController extends Controller
             $userAttributes = $auth->getAttributes();
             return redirect()->intended(route(config('saml.home_url')));
         } else {
+            self::flushSession();
             abort(401, 'SAML authentication failed.');
         }
     }
@@ -143,8 +147,15 @@ class OktaLaravelController extends Controller
     {
         $auth = new SAuth(config('saml'));
         $auth->logout();
-        Auth::logout();
-        \Illuminate\Support\Facades\Session::flush();
+        self::flushSession();
         return redirect('/')->withSuccess('Logout Successful.');
+    }
+
+    public static function flushSession()
+    {
+        Session::flush();
+        Auth::logout();
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
     }
 }
