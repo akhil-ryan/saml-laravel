@@ -145,9 +145,9 @@ class OktaLaravelController extends Controller
 
     public static function samlLogout()
     {
+        self::flushSession();
         $auth = new SAuth(config('saml'));
         $auth->logout();
-        self::flushSession();
         return redirect('/')->withSuccess('Logout Successful.');
     }
 
