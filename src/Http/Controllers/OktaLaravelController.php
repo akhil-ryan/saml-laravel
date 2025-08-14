@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Auth;
 use OneLogin\Saml2\Auth as SAuth;
 use OneLogin\Saml2\Metadata;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Http;
 
 class OktaLaravelController extends Controller
 {
@@ -24,8 +23,9 @@ class OktaLaravelController extends Controller
     {
         if ($metadataUrl) {
             try {
-                $response = Http::get($metadataUrl);
-                $xmlContent = $response->body();
+                $client = new \GuzzleHttp\Client();
+                $response = $client->get($metadataUrl);
+                $xmlContent = $response->getBody()->getContents();
                 $xml = simplexml_load_string($xmlContent);
 
                 $namespaces = $xml->getNamespaces(true);
