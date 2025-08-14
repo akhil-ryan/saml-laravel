@@ -1,5 +1,7 @@
 <?php
 
+use Oktalogin\SamlOktaLogin\Http\Controllers\OktaLaravelController;
+
 return [
     'strict' => true,
     'debug' => true,
@@ -16,18 +18,7 @@ return [
         ],
         'NameIDFormat' => \OneLogin\Saml2\Constants::NAMEID_UNSPECIFIED
     ],
-    'idp' => [
-        'entityId' => env('SAML_ENTITY'),
-        'singleSignOnService' => [
-            'url' => env('SAML_HOME_URL') . env('SAML_SSO'),
-            'binding' => \OneLogin\Saml2\Constants::BINDING_HTTP_REDIRECT,
-        ],
-        'singleLogoutService' => [
-            'url' => env('SAML_HOME_URL'),
-            'binding' => \OneLogin\Saml2\Constants::BINDING_HTTP_REDIRECT,
-        ],
-        'x509cert' => env('SAML_CERT'),
-    ],
+    'idp' => OktaLaravelController::getSamlConfig(env('SAML_METADATA_URL', null)),
     'enable_route' => env('SAML_ROUTE_ENABLE'),
     'routes' => [
         'oktaSamlMetadata' => '/metadata',

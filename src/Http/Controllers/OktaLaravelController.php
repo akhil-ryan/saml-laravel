@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use OneLogin\Saml2\Auth as SAuth;
 use OneLogin\Saml2\Metadata;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Http;
 
 class OktaLaravelController extends Controller
 {
@@ -17,6 +18,64 @@ class OktaLaravelController extends Controller
     {
         $this->userModel = config('saml.model');
         $this->middleware(config('saml.middleware'));
+    }
+
+    public static function getSamlConfig($metadataUrl = null)
+    {
+        if ($metadataUrl) {
+            try {
+                $response = Http::get($metadataUrl);
+                $xmlContent = $response->body();
+                $xml = simplexml_load_string($xmlContent);
+
+                $namespaces = $xml->getNamespaces(true);
+
+                $entityID = $xml->attributes()->entityID ?? '';
+                $entityID = json_decode(json_encode($entityID), true);
+                $idp = $xml->children($namespaces['md'])->IDPSSODescriptor;
+
+                $ssoLocations = [];
+                if ($idp && $idp->SingleSignOnService) {
+                    foreach ($idp->SingleSignOnService as $sso) {
+                        $location = $sso->attributes()->Location ?? '';
+                        if (!empty($location)) {
+                            $ssoLocations[] = (string)$location;
+                        }
+                    }
+                }
+                $keyDescriptor = $idp->KeyDescriptor;
+                $keyInfo = $keyDescriptor->children($namespaces['ds'])->KeyInfo;
+                $x509Certificate = (string)$keyInfo->X509Data->X509Certificate ?? '';
+
+                return [
+                    'entityId' => $entityID[0],
+                    'singleSignOnService' => [
+                        'url' => $ssoLocations[0] ?? '',
+                        'binding' => \OneLogin\Saml2\Constants::BINDING_HTTP_REDIRECT,
+                    ],
+                    'singleLogoutService' => [
+                        'url' => $ssoLocations[0] ?? '',
+                        'binding' => \OneLogin\Saml2\Constants::BINDING_HTTP_REDIRECT,
+                    ],
+                    'x509cert' => $x509Certificate,
+                ];
+            } catch (\Exception $e) {
+                throw new \Exception("Error fetching or parsing SAML metadata: " . $e->getMessage());
+            }
+        }
+
+        return [
+            'entityId' => env('SAML_ENTITY'),
+            'singleSignOnService' => [
+                'url' => env('SAML_HOME_URL') . env('SAML_SSO'),
+                'binding' => \OneLogin\Saml2\Constants::BINDING_HTTP_REDIRECT,
+            ],
+            'singleLogoutService' => [
+                'url' => env('SAML_HOME_URL'),
+                'binding' => \OneLogin\Saml2\Constants::BINDING_HTTP_REDIRECT,
+            ],
+            'x509cert' => env('SAML_CERT'),
+        ];
     }
 
     public function oktaSamlLogin(Request $request)
